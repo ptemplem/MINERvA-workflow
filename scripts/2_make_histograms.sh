@@ -15,13 +15,14 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
-# Actions
-cd ${TOPDIR}/CC-CH-pip-ana
-source ../opt/bin/setup.sh
-./clean
+# Extract Run id
 IFS="/" read -a mc_arr <<< "${mc_run}"
 id=${mc_arr[$((${#mc_arr[@]}-1))]}
 id=$(echo ${id} | tr -d "_.a-z")
+# Analysis Specific Code
+cd ${TOPDIR}/CC-CH-pip-ana
+source ../opt/bin/setup.sh
+./clean
 root -b -l loadLibs.C++ xsec/makeCrossSectionMCInputs.C+(0,'"'ME1A'"',false,false,false,'"'"$(cat ${mc_run})"'"',0,'"'"${id}"'"')
 # makeCrossSectionMCInputs(int signal_definition_int = 0,
 #                            bool do_truth = false, bool is_grid = false,

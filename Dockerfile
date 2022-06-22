@@ -10,19 +10,22 @@ RUN apt install cvs
 RUN git clone https://github.com/MinervaExpt/MAT-MINERvA.git \
     && mkdir -p opt/build && cd opt/build \
     && cmake ../../MAT-MINERvA/bootstrap -DCMAKE_INSTALL_PREFIX=`pwd`/.. -DCMAKE_BUILD_TYPE=Release \
-    && make install \
-    && cd ${TOPDIR} \
-    && source ../opt/bin/setup.sh
+    && make install
 
 ### Clone CC-CH-pip-ana (forked from original)
-RUN git clone https://github.com/ptemplem/CC-CH-pip-ana
+RUN cd ${TOPDIR} \
+    && git clone https://github.com/ptemplem/CC-CH-pip-ana
 
 ### Working Folders
 ENV TOPDIR "/MINERvA-workflow"
 
-### Copy Files (maybe will be only for inputs; code from github?)
-COPY code ${TOPDIR}/code
-
+### Copy Files
+COPY scripts ${TOPDIR}/scripts
+COPY data ${TOPDIR}/data
 
 ### Set workdir
 WORKDIR ${TOPDIR}
+
+### Setup Scripts
+RUN cd ${TOPDIR}/CC-CH-pip-ana
+RUN source ../opt/bin/setup.sh
