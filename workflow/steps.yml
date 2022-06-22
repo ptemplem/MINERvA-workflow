@@ -1,0 +1,65 @@
+minerva_envr:
+  environment_type: 'docker_encapsulated'
+  image: ''
+
+split_anatuples:
+  process:
+    process_type: interpolated-script-cmd
+    interpereter: bash
+    script: |
+      cd **anatuple dir**
+
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      data_runs: data_runs.txt
+      mc_runs: mc_runs.txt
+      
+make_histograms:
+  process:
+    process_type: interpolated-script-cmd
+    interpereter: bash
+    script: |
+    export TOPDIR=${WORKDIR}
+    cd ${TOPDIR}/CC-CH-pip-ana
+    source ${TOPDIR}/opt/bin/setup.sh
+    ./clean
+    root -b -l loadLibs.C++ 'makeCrossSectionMCInputs(0,"ME1A",false,false,false,{mc_runs})'
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      output: 'histograms.root'
+  environment: 'minerva_envr'
+
+merge:
+  process:
+    process_type:  interpolated-script-cmd
+    interpereter: bash
+    script: |
+    madd data.root mc.root
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      histograms: 'histograms.root'
+  environment: 'minerva_envr'
+
+xsec:
+  process:
+    process_type: interpolated-script-cmd
+    interpereter: bash
+    script: |
+    gcc 
+  publisher:
+    publisher_type:
+    publish:
+      output: 'output.root'
+  environment: 'minerva_envr'
+
+plot:
+  process:
+    process_type:
+  publisher:
+    publisher_type:
+    publish:
+      plots: '{WORKDIR}/plots'
+  environment: 'minerva_envr'

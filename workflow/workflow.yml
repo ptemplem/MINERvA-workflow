@@ -1,0 +1,42 @@
+stages:
+
+  - name: split_anatuples
+    dependencies: [init]
+    scheduler:
+      scheduler_type: singlestep-stage
+      parameters:
+        anatuples: {step: init, output: anatuples}
+      step: {$ref: 'steps.yml#/split_anatuples'}
+
+  - name: make_histograms
+    dependencies: [split_anatuples]
+    scheduler:
+      scheduler_type: multistep-stage
+      parameters:
+        input: {step: split_anatuples, output: mc_runs}
+      step: {$ref: 'steps.yml#/make_histograms'}
+
+  - name: merge
+    dependencies: [make_histograms]
+    scheduler:
+      scheduler_type: singlestep-stage
+      parameters:
+        data: {step: make_data_histograms, output: output.root}
+        mc: {step: make_mc_histograms, output: output.root}
+      step: {$ref: 'steps.yml#/merge'}
+ 
+ - name: xsec
+    dependencies: [merge]
+    scheduler:
+      scheduler_type: singlestep-stage
+      parameters:
+        input: {step: init, output: }
+    step: {$ref: 'steps.yml#/xsec'}
+  
+  - name: plot
+    dependencies: [xsec]
+    scheduler:
+      scheduler_type: singlestep-stage
+      parameters:
+        input: {step: xsec, output: xsec.root}
+    step: {$ref: 'steps.yml#/plot'}
