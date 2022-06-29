@@ -16,38 +16,38 @@ while [ "$#" -gt 0 ]; do
 done
 
 # Actions (splits inputs into individual .txt files)
-cd ${TOPDIR}/CC-CH-pip-ana
-mkdir Data && cd Data/
-i=0
+
 split_file () {
-    echo $(cat $1 | tr "," " " | tr "\n" " ") > sfile.txt
+    (cat $1 | tr "," " " | tr $'\n' " " | tr $'\r' " ") > sfile.txt
     IFS=" " read -a sarr <<< $(cat sfile.txt)
     for sname in ${sarr[@]}; do
-        i=$((i+1)) &&
-        echo ${sname} > $2_run${i}.txt
+        if [ $2 == "mc" ]; then
+            i=$((i+1)) &&
+            echo -n ${sname} > mc_runs/mc_run${i}.txt;
+        fi
+        echo ${sname} >> $2_list.txt
     done
 }
 
-if [ ${input_dir}Data/*.root == "${input_dir}Data/*.root" ]; then
+touch data_list.txt
+if [ ${input_dir}/Data/*.root == "${input_dir}/Data/*.root" ]; then  # (If .root files don't exist)
     : ; else
     for file_name in ${input_dir}Data/*.root; do
-        i=$((i+1)) && 
-        echo ${file_name} > data_run${i}.txt
+        echo ${file_name} >> data_list.txt
     done;
 fi
-if [ ${input_dir}Data/*.txt == "${input_dir}Data/*.txt" ]; then
+if [ ${input_dir}/Data/*.txt == "${input_dir}/Data/*.txt" ]; then
     : ; else
-    for file_name in ${input_dir}Data/*.txt; do
+    for file_name in ${input_dir}/Data/*.txt; do
         split_file ${file_name} "data"
     done;
 fi
-for file_name in ${input_dir}Data/*; do
+for file_name in ${input_dir}/Data/*; do
     if [ "$(file ${file_name})" == "${file_name}: directory" ] ; then
         if [ ${file_name}/*.root == "${file_name}/*.root" ]; then
             : ; else
             for file_name2 in ${file_name}/*.root; do
-                i=$((i+1)) &&
-                echo ${file_name2} > data_run${i}.txt
+                echo ${file_name2} >> data_list.txt
             done;
         fi
         if [ ${file_name}/*.txt == "${file_name}/*.txt" ]; then
@@ -60,28 +60,30 @@ for file_name in ${input_dir}Data/*; do
 done
 
 # Repeat above for MC files
-cd .. && mkdir MC/ && cd MC/
+mkdir mc_runs
 i=0
-if [ ${input_dir}MC/*.root == "${input_dir}MC/*.root" ]; then
+if [ ${input_dir}/MC/*.root == "${input_dir}/MC/*.root" ]; then
     : ; else
-    for file_name in ${input_dir}MC/*.root; do
+    for file_name in ${input_dir}/MC/*.root; do
         i=$((i+1)) && 
-        echo ${file_name} > mc_run${i}.txt
+        echo -n ${file_name} > mc_runs/mc_run${i}.txt
+        echo ${file_name} >> mc_list.txt
     done;
 fi
-if [ ${input_dir}MC/*.txt == "${input_dir}MC/*.txt" ]; then
+if [ ${input_dir}/MC/*.txt == "${input_dir}/MC/*.txt" ]; then
     : ; else
-    for file_name in ${input_dir}MC/*.txt; do
+    for file_name in ${input_dir}/MC/*.txt; do
         split_file ${file_name} "mc"
     done;
 fi
-for file_name in ${input_dir}MC/*; do
+for file_name in ${input_dir}/MC/*; do
     if [ "$(file ${file_name})" == "${file_name}: directory" ] ; then
         if [ ${file_name}/*.root == "${file_name}/*.root" ]; then
             : ; else
             for file_name2 in ${file_name}/*.root; do
                 i=$((i+1)) &&
-                echo ${file_name2} > mc_run${i}.txt
+                echo -n ${file_name2} > mc_runs/mc_run${i}.txt
+                echo ${file_name2} >> mc_list.txt
             done;
         fi
         if [ ${file_name}/*.txt == "${file_name}/*.txt" ]; then
@@ -92,4 +94,4 @@ for file_name in ${input_dir}MC/*; do
         fi    
     fi
 done
-rm sfile.txt
+# rm sfile.txt

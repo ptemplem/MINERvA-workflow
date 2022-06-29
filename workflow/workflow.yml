@@ -13,30 +13,36 @@ stages:
     scheduler:
       scheduler_type: multistep-stage
       parameters:
-        input: {step: split_anatuples, output: mc_runs}
+        mc_runs: {step: split_anatuples, output: mc_runs}
+      scatter:
+        method: zip
+        parameters: [mc_runs]
       step: {$ref: 'steps.yml#/make_histograms'}
 
-  - name: merge
+  - name: merge_histograms
     dependencies: [make_histograms]
     scheduler:
       scheduler_type: singlestep-stage
       parameters:
-        data: {step: make_data_histograms, output: output.root}
-        mc: {step: make_mc_histograms, output: output.root}
+        histograms: {step: make_histograms, output: histograms}
       step: {$ref: 'steps.yml#/merge'}
  
- - name: xsec
-    dependencies: [merge]
+ - name: xsec_calculation
+    dependencies: [merge_histograms]
     scheduler:
       scheduler_type: singlestep-stage
       parameters:
-        input: {step: init, output: }
+        histograms: {step: merge_histograms, output: histograms}
+        data_list: {step: split_anatuples, output: data_list}
+        mc_list: {step: split_anatuples, output: mc_list}
     step: {$ref: 'steps.yml#/xsec'}
   
   - name: plot
-    dependencies: [xsec]
+    dependencies: [xsec_calculation]
     scheduler:
       scheduler_type: singlestep-stage
       parameters:
-        input: {step: xsec, output: xsec.root}
+        xsec: {step: xsec_calculation, output: xsec}
+        data_list: {step: split_anatuples, output: data_list}
+        mc_list: {step: split_anatuples, output: mc_list}
     step: {$ref: 'steps.yml#/plot'}

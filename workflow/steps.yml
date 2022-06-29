@@ -1,65 +1,59 @@
 minerva_envr:
   environment_type: 'docker_encapsulated'
-  image: ''
+  image: 'ptemplem/minerva-workflow'
 
 split_anatuples:
   process:
-    process_type: interpolated-script-cmd
-    interpereter: bash
-    script: |
-      cd **anatuple dir**
+    process_type: string-interpolated-cmd
+    cmd: source ${SCRIPTS}/1_split_anatuples.sh -i {anatuples}
 
   publisher:
     publisher_type: interpolated-pub
     publish:
-      data_runs: data_runs.txt
-      mc_runs: mc_runs.txt
-      
+      data_list: data_list.txt
+      mc_list: mc_list.txt
+      mc_runs: mc_runs/*
+
 make_histograms:
   process:
-    process_type: interpolated-script-cmd
-    interpereter: bash
-    script: |
-    export TOPDIR=${WORKDIR}
-    cd ${TOPDIR}/CC-CH-pip-ana
-    source ${TOPDIR}/opt/bin/setup.sh
-    ./clean
-    root -b -l loadLibs.C++ 'makeCrossSectionMCInputs(0,"ME1A",false,false,false,{mc_runs})'
+    process_type: string-interpolated-cmd
+    cmd: source ${SCRIPTS}/2_make_histograms.sh -i {mc_runs} -o histograms/histogram
+    
   publisher:
     publisher_type: interpolated-pub
     publish:
-      output: 'histograms.root'
+      histograms: 'histograms/*'
   environment: 'minerva_envr'
 
 merge:
   process:
-    process_type:  interpolated-script-cmd
-    interpereter: bash
-    script: |
-    madd data.root mc.root
+    process_type: string-interpolated-cmd
+    cmd: source ${SCRIPTS}/3_merge_histograms.sh -i {histograms}
+
   publisher:
     publisher_type: interpolated-pub
     publish:
-      histograms: 'histograms.root'
+      histograms: 'MCXSecInputs.root'
   environment: 'minerva_envr'
 
 xsec:
   process:
-    process_type: interpolated-script-cmd
-    interpereter: bash
-    script: |
-    gcc 
+    process_type: string-interpolated-cmd
+    cmd: source ${SCRIPTS}/4_xsec_calculation.sh -d {data_list} -m {mc_list} -h {histograms} -o "xsec.root"
+
   publisher:
-    publisher_type:
+    publisher_type: interpolated-pub
     publish:
-      output: 'output.root'
+      xsec: 'xsec.root'
   environment: 'minerva_envr'
 
 plot:
   process:
-    process_type:
+    process_type: string-interpolated-cmd
+    cmd: source ${SCRIPTS}/5_plot.sh -d {data_list} -m {mc_list} -x {xsec}
+
   publisher:
-    publisher_type:
+    publisher_type: interpolated-pub
     publish:
-      plots: '{WORKDIR}/plots'
+      plots: '*.png'
   environment: 'minerva_envr'

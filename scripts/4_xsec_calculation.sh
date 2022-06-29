@@ -10,11 +10,12 @@ while [ "$#" -gt 0 ]; do
     case $1 in
         -d|--data)  data="$2";    shift  ;;
         -m|--mc)  mc="$2";    shift  ;;
-        -x|--xsec_file)  xsec_file="$2";    shift  ;;
+        -h|--histograms)  histograms="$2";    shift  ;;
+        -x|--outfile)  outfile="$2";    shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
 done
 
 # Actions
-root -b -q loadLibs.C+ xsec/plotCrossSectionFromFile.C+(0,1,'"'${xsec_file}'"','"'${data}'"','"'${mc}'"')
+root -b -q loadLibs.C+ xsec/crossSectionDataFromFile.C+(0,'"'ALL'"','"'${histograms}'"','"'${xsec_inputs}'"','"'${data}'"','"'${mc}'"')

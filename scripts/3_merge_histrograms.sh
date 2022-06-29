@@ -16,4 +16,4 @@ while [ "$#" -gt 0 ]; do
 done
 
 # Actions
-madd MCinputs.root ${histograms}
+madd MCXSecInputs.root ${histograms}
