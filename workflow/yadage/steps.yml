@@ -1,0 +1,85 @@
+minerva_envr: &minerva_envr
+  environment_type: 'docker-encapsulated'
+  image: 'ptemplem/minerva-workflow'
+  imagetag: 'latest'
+
+split_anatuples:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      (cat {data}) > {outdir}/workflow_data_list.txt
+      (cat {mc}) > workflow_mc_list.txt
+      source ../scripts/1_split_anatuples.sh -m workflow_mc_list.txt -d {outdir}
+      mv workflow_mc_list.txt {outdir}/workflow_mc_list.txt
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      data_list: '{outdir}/workflow_data_list.txt'
+      mc_list: '{outdir}/workflow_mc_list.txt'
+      mc_runs: '{outdir}/mc_runs/*'
+  environment: *minerva_envr
+
+make_histograms:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      source ../scripts/2_make_histograms.sh -i {mc_runs}
+      root -b -l rootIncludes.C loadLibs.C "xsec/makeCrossSectionMCInputs.C+(0,\"ME1A\",false,true,false,\"$(cat {mc_runs})\",0,\"$id\",\"{outdir}/histogram\")"
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      histograms: '{outdir}/histogram*'
+  environment: *minerva_envr
+
+merge:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      madd {outdir}/MCXSecInputs.root {histograms}
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      histograms: '{outdir}/MCXSecInputs.root'
+  environment: *minerva_envr
+
+xsec_calculation:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      root -b -l rootIncludes.C loadLibs.C "xsec/crossSectionDataFromFile.C+(0,\"ALL\",\"{histograms}\",\"{outdir}/XSec.root\",\"{data_list}\",\"{mc_list}\")"
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      xsec: '{outdir}/XSec.root'
+  environment: *minerva_envr
+
+plot:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      root -b -l "xsec/plotCrossSectionFromFile.C+(0,1,\"{xsec}\",\"{data_list}\",\"{mc_list}\")"
+      mv *.png {outdir}
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      plots: '{outdir}/*.png'
+  environment: *minerva_envr
+
+test:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      source ../scripts/2_make_histograms.sh -i {mc_runs}
+      echo {mc_runs}
+      echo $id
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      blank: '{outdir}'
+  environment: *minerva_envr
