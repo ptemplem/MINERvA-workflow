@@ -8,8 +8,32 @@ split_anatuples:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      (cat {data}) > {outdir}/workflow_data_list.txt
-      (cat {mc}) > workflow_mc_list.txt
+      touch {outdir}/workflow_data_list.txt
+      touch workflow_mc_list.txt
+      for file_name in {data}; do
+        case $(file -b $file_name) in
+
+          "ASCII text" | "ASCII text, with CRLF line terminators")
+            cat $file_name >> {outdir}/workflow_data_list.txt
+            ;;
+
+          "directory")
+            cat $file_name/*.txt >> {outdir}/workflow_data_list.txt
+            ;;
+        esac
+      done
+      for file_name in {mc}; do
+        case $(file -b $file_name) in
+
+          "ASCII text" | "ASCII text, with CRLF line terminators")
+            cat $file_name >> workflow_mc_list.txt
+            ;;
+
+          "directory")
+            cat $file_name/*.txt >> workflow_mc_list.txt
+            ;;
+        esac
+      done
       source ../scripts/1_split_anatuples.sh -m workflow_mc_list.txt -d {outdir}
       mv workflow_mc_list.txt {outdir}/workflow_mc_list.txt
   publisher:
