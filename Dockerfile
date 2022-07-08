@@ -1,4 +1,4 @@
-FROM rootproject/root:6.24.00-ubuntu20.04
+FROM ptemplem/mat-container:latest
 
 ### Working Folders
 ENV TOPDIR "/MINERvA-workflow"
@@ -8,20 +8,13 @@ ENV SCRIPTS "${TOPDIR}/scripts"
 ### Copy Files
 COPY scripts ${SCRIPTS}
 
-### Dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    git \
-    cvs
-
-### Clone MAT-MINERvA and CC-CH-pip-ana (forked from original); setup MAT-MINERvA
+### Clone Analysis
 RUN cd ${TOPDIR} && \
     git clone https://github.com/ptemplem/CC-CH-pip-ana
-RUN cd ${TOPDIR} && \
-    git clone https://github.com/MinervaExpt/MAT-MINERvA.git && \
-    mkdir -p opt/build && cd opt/build && \
-    cmake ../../MAT-MINERvA/bootstrap -DCMAKE_INSTALL_PREFIX=`pwd`/.. -DCMAKE_BUILD_TYPE=Release && \
-    make MAT-MINERvA
 
 ### Setup Scripts
+RUN chmod +x ${TOPDIR}/opt/bin/setup_MAT.sh && ${TOPDIR}/opt/bin/setup_MAT.sh
+ENV MPARAMFILESROOT ${TOPDIR}/opt/etc/MParamFiles
+ENV MPARAMFILES=${MPARAMFILESROOT}/data
+
 RUN root -qbl rootIncludes.C loadLibs.C

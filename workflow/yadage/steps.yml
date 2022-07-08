@@ -13,7 +13,7 @@ split_anatuples:
       for file_name in {data}; do
         case $(file -b $file_name) in
 
-          "ASCII text" | "ASCII text, with CRLF line terminators")
+          "ASCII text" | "ASCII text, with CRLF line terminators" | "ASCII text, with no line terminators")
             cat $file_name >> {outdir}/workflow_data_list.txt
             ;;
 
@@ -25,7 +25,7 @@ split_anatuples:
       for file_name in {mc}; do
         case $(file -b $file_name) in
 
-          "ASCII text" | "ASCII text, with CRLF line terminators")
+          "ASCII text" | "ASCII text, with CRLF line terminators" | "ASCII text, with no line terminators")
             cat $file_name >> workflow_mc_list.txt
             ;;
 
@@ -49,8 +49,9 @@ make_histograms:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
+      source $TOPDIR/opt/bin/setup_MAT.sh
       source ../scripts/2_make_histograms.sh -i {mc_runs}
-      root -b -l rootIncludes.C loadLibs.C "xsec/makeCrossSectionMCInputs.C+(0,\"ME1A\",false,true,false,\"$(cat {mc_runs})\",0,\"$id\",\"{outdir}/histogram\")"
+      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+(0,\"ME1A\",false,true,false,\"$(cat {mc_runs})\",0,\"$id\",\"{outdir}/histogram\")"
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -99,9 +100,7 @@ test:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      source ../scripts/2_make_histograms.sh -i {mc_runs}
-      echo {mc_runs}
-      echo $id
+      echo $PLOTUTILSROOT
   publisher:
     publisher_type: interpolated-pub
     publish:
