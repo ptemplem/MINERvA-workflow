@@ -4,4 +4,4 @@
 # The script exits when a command fails or it uses undeclared variables
 #set -o errexit
 #set -o nounset
-echo "This works"
+echo {outdir}

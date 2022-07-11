@@ -1,14 +1,4 @@
-### Dockerfile Reference: Madminer Workflow (https://github.com/madminer-tool/madminer-workflow-ph/blob/master/Dockerfile)
-FROM rootproject/root:6.24.00-ubuntu20.04
-
-### Dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends git
-
-### Clone MAT-MINERvA and CC-CH-pip-ana (forked from original)
-RUN git clone https://github.com/MinervaExpt/MAT-MINERvA.git && \
-    git clone https://github.com/MinervaExpt/MAT.git && \
-    git clone https://github.com/ptemplem/CC-CH-pip-ana
+FROM ptemplem/mat-container:latest
 
 ### Working Folders
 ENV TOPDIR "/MINERvA-workflow"
@@ -18,6 +8,13 @@ ENV SCRIPTS "${TOPDIR}/scripts"
 ### Copy Files
 COPY scripts ${SCRIPTS}
 
+### Clone Analysis
+RUN cd ${TOPDIR} && \
+    git clone https://github.com/ptemplem/CC-CH-pip-ana
+
 ### Setup Scripts
-### RUN bash ${TOPDIR}/opt/bin/setup.sh
-RUN root -qbl loadLibs.C++
+RUN chmod +x ${TOPDIR}/opt/bin/setup_MAT.sh && ${TOPDIR}/opt/bin/setup_MAT.sh
+ENV MPARAMFILESROOT ${TOPDIR}/opt/etc/MParamFiles
+ENV MPARAMFILES=${MPARAMFILESROOT}/data
+
+RUN root -qbl rootIncludes.C loadLibs.C
