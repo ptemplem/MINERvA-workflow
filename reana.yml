@@ -1,0 +1,11 @@
+version: 0.0.0
+inputs:
+  parameters:
+    data: 'anatuples/Data/*'
+    mc: 'anatuples/MC/*'
+  directories:
+    - workflow
+    - anatuples
+workflow:
+  type: yadage
+  file: workflow/workflow.yml

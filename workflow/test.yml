@@ -1,0 +1,10 @@
+stages:
+- name: test
+  dependencies: [init]
+  scheduler:
+    scheduler_type: singlestep-stage
+    parameters:
+      data: {step: init, output: data}
+      mc: {step: init, output: mc}
+      outdir: '{workdir}'
+    step: {$ref: 'workflow/steps.yml#/test'}

@@ -7,18 +7,16 @@ stages:
       data: {step: init, output: data}
       mc: {step: init, output: mc}
       outdir: '{workdir}'
-    step: {$ref: 'steps.yml#/split_anatuples'}
+    step: {$ref: 'workflow/steps.yml#/split_anatuples'}
 - name: make_histograms
   dependencies: [split_anatuples]
   scheduler:
-    scheduler_type: multistep-stage
+    scheduler_type: singlestep-stage
     parameters:
       mc_runs: {step: split_anatuples, output: mc_runs}
+      mc: {step: init, output: mc}
       outdir: '{workdir}'
-    scatter:
-      method: zip
-      parameters: [mc_runs]
-    step: {$ref: 'steps.yml#/make_histograms'}
+    step: {$ref: 'workflow/steps.yml#/make_histograms'}
 - name: merge_histograms
   dependencies: [make_histograms]
   scheduler:
@@ -26,7 +24,7 @@ stages:
     parameters:
       histograms: {step: make_histograms, output: histograms}
       outdir: '{workdir}'
-    step: {$ref: 'steps.yml#/merge'} 
+    step: {$ref: 'workflow/steps.yml#/merge'} 
 - name: xsec_calculation
   dependencies: [merge_histograms]
   scheduler:
@@ -35,8 +33,10 @@ stages:
       histograms: {step: merge_histograms, output: histograms}
       data_list: {step: split_anatuples, output: data_list}
       mc_list: {step: split_anatuples, output: mc_list}
+      data: {step: init, output: data}
+      mc: {step: init, output: mc}
       outdir: '{workdir}'
-    step: {$ref: 'steps.yml#/xsec_calculation'} 
+    step: {$ref: 'workflow/steps.yml#/xsec_calculation'} 
 - name: plot
   dependencies: [xsec_calculation]
   scheduler:
@@ -45,5 +45,7 @@ stages:
       xsec: {step: xsec_calculation, output: xsec}
       data_list: {step: split_anatuples, output: data_list}
       mc_list: {step: split_anatuples, output: mc_list}
+      data: {step: init, output: data}
+      mc: {step: init, output: mc}
       outdir: '{workdir}'
-    step: {$ref: 'steps.yml#/plot'}
+    step: {$ref: 'workflow/steps.yml#/plot'}

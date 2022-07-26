@@ -9,7 +9,7 @@ split_anatuples:
     interpreter: bash
     script: |
       touch {outdir}/workflow_data_list.txt
-      touch workflow_mc_list.txt
+      touch {outdir}/workflow_mc_list.txt
       for file_name in {data}; do
         case $(file -b $file_name) in
 
@@ -20,22 +20,29 @@ split_anatuples:
           "directory")
             cat $file_name/*.txt >> {outdir}/workflow_data_list.txt
             ;;
+
+          *)
+            echo $file_name >> {outdir}/workflow_data_list.txt
+            ;;
         esac
       done
       for file_name in {mc}; do
         case $(file -b $file_name) in
 
           "ASCII text" | "ASCII text, with CRLF line terminators" | "ASCII text, with no line terminators")
-            cat $file_name >> workflow_mc_list.txt
+            cat $file_name >> {outdir}/workflow_mc_list.txt
             ;;
 
           "directory")
-            cat $file_name/*.txt >> workflow_mc_list.txt
+            cat $file_name/*.txt >> {outdir}/workflow_mc_list.txt
+            ;;
+
+          *)
+            echo $file_name >> {outdir}/workflow_mc_list.txt
             ;;
         esac
       done
-      source ../scripts/1_split_anatuples.sh -m workflow_mc_list.txt -d {outdir}
-      mv workflow_mc_list.txt {outdir}/workflow_mc_list.txt
+      source ../scripts/1_split_anatuples.sh -d {outdir}
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -49,9 +56,7 @@ make_histograms:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      source $TOPDIR/opt/bin/setup_MAT.sh
-      source ../scripts/2_make_histograms.sh -i {mc_runs}
-      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+(0,\"ME1A\",false,true,false,\"$(cat {mc_runs})\",0,\"$id\",\"{outdir}/histogram\")"
+      root -b -l loadLibs.C loadMacros.C "xsec/makeCrossSectionMCInputs.C+(0,\"ME1A\",false,false,false,\"$(cat {mc_runs})\",0,\"id\",\"{outdir}/histogram\")"
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -75,7 +80,7 @@ xsec_calculation:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      root -b -l rootIncludes.C loadLibs.C "xsec/crossSectionDataFromFile.C+(0,\"ALL\",\"{histograms}\",\"{outdir}/XSec.root\",\"{data_list}\",\"{mc_list}\")"
+      root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+(0,\"ME1A\",\"{histograms}\",\"{outdir}/XSec.root\",\"{data_list}\",\"{mc_list}\")"
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -87,7 +92,7 @@ plot:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      root -b -l "xsec/plotCrossSectionFromFile.C+(0,1,\"{xsec}\",\"{data_list}\",\"{mc_list}\")"
+      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+(0,1,\"{xsec}\",\"{data_list}\",\"{mc_list}\")"
       mv *.png {outdir}
   publisher:
     publisher_type: interpolated-pub
@@ -100,9 +105,22 @@ test:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      echo $PLOTUTILSROOT
+      ls xsec
   publisher:
     publisher_type: interpolated-pub
     publish:
       blank: '{outdir}'
+  environment: *minerva_envr
+
+test_vars:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      root -b -q -l loadLibs.C "studies/runCutVariables.C(0,\"ME1A\",\"{data_list}\",\"{mc_list}\")"
+      mv *.png {outdir}
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      plots: '{outdir}/*.png'
   environment: *minerva_envr

@@ -1,20 +1,25 @@
 FROM ptemplem/mat-container:latest
-
-### Working Folders
-ENV TOPDIR "/MINERvA-workflow"
+### Setup Environements
+ENV TOPDIR /MINERvA-workflow
 WORKDIR ${TOPDIR}/CC-CH-pip-ana
-ENV SCRIPTS "${TOPDIR}/scripts"
+ENV SCRIPTS ${TOPDIR}/scripts
 
 ### Copy Files
 COPY scripts ${SCRIPTS}
-
 ### Clone Analysis
-RUN cd ${TOPDIR} && \
-    git clone https://github.com/ptemplem/CC-CH-pip-ana
+COPY CC-CH-pip-ana ${TOPDIR}/CC-CH-pip-ana
 
-### Setup Scripts
-RUN chmod +x ${TOPDIR}/opt/bin/setup_MAT.sh && ${TOPDIR}/opt/bin/setup_MAT.sh
+### MAT Includes
+ENV PLOTUTILSROOT=${TOPDIR}/opt/lib
+ENV LD_LIBRARY_PATH=${PLOTUTILSROOT}:$LD_LIBRARY_PATH
+
+ENV PATH=${TOPDIR}/opt/bin:$PATH
+ENV PLOTUTILSTYPE="STANDALONE"
+ENV PLOTUTILSVERSION="ROOT6"
+
+ENV ROOT_INCLUDE_PATH=${TOPDIR}/opt/include/PlotUtils:${TOPDIR}/opt/include:${ROOT_INCLUDE_PATH}
 ENV MPARAMFILESROOT ${TOPDIR}/opt/etc/MParamFiles
 ENV MPARAMFILES=${MPARAMFILESROOT}/data
 
-RUN root -qbl rootIncludes.C loadLibs.C
+### Compile Analysis Code
+RUN root -b -l loadLibs.C loadMacros.C
