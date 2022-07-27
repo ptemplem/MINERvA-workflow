@@ -44,11 +44,11 @@ split_anatuples:
       done
       source ../scripts/1_split_anatuples.sh -d {outdir}
   publisher:
-    publisher_type: interpolated-pub
+    publisher_type: 'interpolated-pub'
     publish:
-      data_list: '{outdir}/workflow_data_list.txt'
-      mc_list: '{outdir}/workflow_mc_list.txt'
-      mc_runs: '{outdir}/mc_runs/*'
+      mc_runs: '{outdir}/mc_runs/'
+      data_list: '{outdir}/data_list.txt'
+      mc_list: '{outdir}/mc_list.txt'
   environment: *minerva_envr
 
 make_histograms:

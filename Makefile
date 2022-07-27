@@ -36,7 +36,6 @@ test:
 	@echo "Testing Workflow..."
 	@sudo rm -rf yadage-workdir
 	@yadage-run $(YADAGE_WORK_DIR) "workflow/test.yml" \
-		-p data=$(DATA_DIR)/* \
-		-p mc=$(MC_DIR)/* \
+		-p mc_runs=test/mc_runs/* \
 		-d initdir=$(YADAGE_INPUT_DIR) \
 		--toplevel $(YADAGE_INPUT_DIR)

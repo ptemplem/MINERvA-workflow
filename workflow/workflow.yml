@@ -11,12 +11,15 @@ stages:
 - name: make_histograms
   dependencies: [split_anatuples]
   scheduler:
-    scheduler_type: singlestep-stage
+    scheduler_type: multistep-stage
     parameters:
       mc_runs: {step: split_anatuples, output: mc_runs}
       mc: {step: init, output: mc}
       outdir: '{workdir}'
     step: {$ref: 'workflow/steps.yml#/make_histograms'}
+    scatter:
+      method: zip
+      parameters: [mc_runs]
 - name: merge_histograms
   dependencies: [make_histograms]
   scheduler:
