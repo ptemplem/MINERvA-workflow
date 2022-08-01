@@ -13,7 +13,3 @@ done
 IFS="/" read -a mc_arr <<< "${mc_run}"
 id=${mc_arr[$((${#mc_arr[@]}-1))]}
 export id=$(echo ${id} | tr -d "_.a-z")
-
-# makeCrossSectionMCInputs(int signal_definition_int = 0,
-#                            bool do_truth = false, bool is_grid = false,
-#                              std::string input_file = "", int run = 0, std::string input_id = "")

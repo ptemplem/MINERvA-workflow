@@ -1,8 +1,16 @@
 version: 0.0.0
 inputs:
   parameters:
+    ### Anatuple Locations
     data: 'anatuples/Data/*'
     mc: 'anatuples/MC/*'
+    ### Workflow Options
+    do_truth: false
+    do_systematics: false
+    ### Signal Definition
+    preset: 0
+    pospi: 1
+    negpi: 0
   directories:
     - workflow
     - anatuples

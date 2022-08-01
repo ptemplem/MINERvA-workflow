@@ -16,6 +16,8 @@ stages:
       mc_runs: {step: split_anatuples, output: mc_runs}
       mc: {step: init, output: mc}
       outdir: '{workdir}'
+      do_truth: {step: init, output: do_truth}
+      do_systematics: {step: init, output: do_systematics}
     step: {$ref: 'workflow/steps.yml#/make_histograms'}
 - name: merge_histograms
   dependencies: [make_histograms]

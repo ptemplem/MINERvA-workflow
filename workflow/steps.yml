@@ -46,7 +46,7 @@ split_anatuples:
   publisher:
     publisher_type: 'interpolated-pub'
     publish:
-      mc_runs: '{outdir}/mc_runs/'
+      mc_runs: '{outdir}/mc_runs/*'
       data_list: '{outdir}/data_list.txt'
       mc_list: '{outdir}/mc_list.txt'
   environment: *minerva_envr
@@ -56,7 +56,7 @@ make_histograms:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      root -b -l loadLibs.C loadMacros.C "xsec/makeCrossSectionMCInputs.C+(0,\"ME1A\",false,false,false,\"$(cat {mc_runs})\",0,\"id\",\"{outdir}/histogram\")"
+      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+(0,\"ME1A\",{do_truth},{do_systematics},false,\"$(cat {mc_runs})\",0,\"id\",\"{outdir}/histogram\")"
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -109,7 +109,7 @@ test:
   publisher:
     publisher_type: interpolated-pub
     publish:
-      blank: '{outdir}'
+      blank: ''
   environment: *minerva_envr
 
 test_vars:

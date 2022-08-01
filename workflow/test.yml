@@ -2,11 +2,7 @@ stages:
 - name: test
   dependencies: [init]
   scheduler:
-    scheduler_type: multistep-stage
+    scheduler_type: singlestep-stage
     parameters:
-      mc_runs: {step: init, output: mc_runs}
-      outdir: '{workdir}'
-    step: {$ref: 'workflow/steps.yml#/make_histograms'}
-    scatter:
-      method: zip
-      parameters: [mc_runs]
+      param: {step: init, output: params}
+    step: {$ref: 'workflow/steps.yml#/test'}
