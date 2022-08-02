@@ -47,8 +47,8 @@ split_anatuples:
     publisher_type: 'interpolated-pub'
     publish:
       mc_runs: '{outdir}/mc_runs/*'
-      data_list: '{outdir}/data_list.txt'
-      mc_list: '{outdir}/mc_list.txt'
+      data_list: '{outdir}/workflow_data_list.txt'
+      mc_list: '{outdir}/workflow_mc_list.txt'
   environment: *minerva_envr
 
 make_histograms:
@@ -56,7 +56,8 @@ make_histograms:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+(0,\"ME1A\",{do_truth},{do_systematics},false,\"$(cat {mc_runs})\",0,\"id\",\"{outdir}/histogram\")"
+      source ../scripts/2_make_histograms.sh -i {mc_runs}
+      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+({signal_def},\"ME1A\",{do_truth},{do_systematics},false,\"$(cat {mc_runs})\",0,\"$id\",\"{outdir}/histogram\")"
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -80,7 +81,7 @@ xsec_calculation:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+(0,\"ME1A\",\"{histograms}\",\"{outdir}/XSec.root\",\"{data_list}\",\"{mc_list}\")"
+      root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+({signal_def},\"ME1A\",\"{histograms}\",\"{outdir}/XSec.root\",\"{data_list}\",\"{mc_list}\")"
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -92,8 +93,13 @@ plot:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+(0,1,\"{xsec}\",\"{data_list}\",\"{mc_list}\")"
-      mv *.png {outdir}
+      truth=0
+      if {do_truth}; then truth=1; fi
+      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{xsec}\",\"{data_list}\",\"{mc_list}\")"
+      mv Migration*.png {outdir}
+      mv Selection*.png {outdir}
+      if {do_truth}; then source ../scripts/5_plot.sh -o {outdir}; fi
+      if {do_systematics}; then mv Eff*.png {outdir}; fi
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -105,7 +111,10 @@ test:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      ls xsec
+      if {do_truth}; then
+        echo "TRUTH"
+        echo "more TRUTH"
+      fi
   publisher:
     publisher_type: interpolated-pub
     publish:

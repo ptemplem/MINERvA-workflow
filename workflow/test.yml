@@ -4,5 +4,5 @@ stages:
   scheduler:
     scheduler_type: singlestep-stage
     parameters:
-      param: {step: init, output: params}
+      do_truth: {step: init, output: do_truth}
     step: {$ref: 'workflow/steps.yml#/test'}

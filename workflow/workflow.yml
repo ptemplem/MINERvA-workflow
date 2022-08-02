@@ -18,6 +18,7 @@ stages:
       outdir: '{workdir}'
       do_truth: {step: init, output: do_truth}
       do_systematics: {step: init, output: do_systematics}
+      signal_def: {step: init, output: signal_def}
     step: {$ref: 'workflow/steps.yml#/make_histograms'}
 - name: merge_histograms
   dependencies: [make_histograms]
@@ -37,6 +38,7 @@ stages:
       mc_list: {step: split_anatuples, output: mc_list}
       data: {step: init, output: data}
       mc: {step: init, output: mc}
+      signal_def: {step: init, output: signal_def}
       outdir: '{workdir}'
     step: {$ref: 'workflow/steps.yml#/xsec_calculation'} 
 - name: plot
@@ -49,5 +51,8 @@ stages:
       mc_list: {step: split_anatuples, output: mc_list}
       data: {step: init, output: data}
       mc: {step: init, output: mc}
+      do_truth: {step: init, output: do_truth}
+      do_systematics: {step: init, output: do_systematics}
+      signal_def: {step: init, output: signal_def}
       outdir: '{workdir}'
     step: {$ref: 'workflow/steps.yml#/plot'}
