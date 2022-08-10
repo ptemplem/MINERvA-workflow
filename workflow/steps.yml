@@ -8,60 +8,60 @@ split_anatuples:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      touch {outdir}/workflow_data_list.txt
-      touch {outdir}/workflow_mc_list.txt
-      for file_name in {data}; do
-        case $(file -b $file_name) in
-
-          "ASCII text" | "ASCII text, with CRLF line terminators" | "ASCII text, with no line terminators")
-            cat $file_name >> {outdir}/workflow_data_list.txt
-            ;;
-
-          "directory")
-            cat $file_name/*.txt >> {outdir}/workflow_data_list.txt
-            ;;
-
-          *)
-            echo $file_name >> {outdir}/workflow_data_list.txt
-            ;;
-        esac
-      done
-      for file_name in {mc}; do
-        case $(file -b $file_name) in
-
-          "ASCII text" | "ASCII text, with CRLF line terminators" | "ASCII text, with no line terminators")
-            cat $file_name >> {outdir}/workflow_mc_list.txt
-            ;;
-
-          "directory")
-            cat $file_name/*.txt >> {outdir}/workflow_mc_list.txt
-            ;;
-
-          *)
-            echo $file_name >> {outdir}/workflow_mc_list.txt
-            ;;
-        esac
-      done
-      source ../scripts/1_split_anatuples.sh -d {outdir}
+      mkdir {outdir}/mc_runs
+      mkdir {outdir}/data_runs
+      mkdir {outdir}/index
+      export mc_arr=({mc})
+      export data_arr=({data})
+      source ../scripts/1_split_anatuples.sh -d {outdir} -p {by_playlist}
   publisher:
     publisher_type: 'interpolated-pub'
+    glob: true
     publish:
-      mc_runs: '{outdir}/mc_runs/*'
-      data_list: '{outdir}/workflow_data_list.txt'
+      mc_runs: '{outdir}/mc_runs/'
+      data_runs: '{outdir}/data_runs/'
+      index: '{outdir}/index/*'
       mc_list: '{outdir}/workflow_mc_list.txt'
+      data_list: '{outdir}/workflow_data_list.txt'
   environment: *minerva_envr
 
-make_histograms:
+mc_histograms:
   process:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      source ../scripts/2_make_histograms.sh -i {mc_runs}
-      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+({signal_def},\"ME1A\",{do_truth},{do_systematics},false,\"$(cat {mc_runs})\",0,\"$id\",\"{outdir}/histogram\")"
+      mc_run={mc_runs}$(ls {mc_runs} | grep $(cat {index}).txt)
+      echo {mc_runs}
+      echo $(cat {index}).txt
+      source ../scripts/2_histograms_outfile.sh -i {index} -t mc -o {outdir}
+      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+({signal_def},\"ME1A\",{do_truth},{do_systematics},false,\"$mc_run\",\"$outfile\")"
   publisher:
     publisher_type: interpolated-pub
     publish:
-      histograms: '{outdir}/histogram*'
+      histograms: '{outdir}/mc_histogram*.root'
+  environment: *minerva_envr
+
+data_histograms:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      data_run={data_runs}$(ls {data_runs} | grep $(cat {index}).txt)
+      mc_run={mc_runs}$(ls {mc_runs} | grep $(cat {index}).txt)
+      histogram={outdir}/../$(cd {outdir}/.. && find -name $(echo *$(cat {index}).root) )
+      source ../scripts/2_histograms_outfile.sh -i {index} -t data -o {outdir}
+      case $data_run in
+        *".txt")
+          root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+({signal_def},\"ME1A\",\"$histogram\",\"$outfile\",\"$data_run\",\"$mc_run\")"
+          ;;
+        *)
+          cp $histogram $outfile
+          ;;
+      esac
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      histograms: '{outdir}/data_histogram*.root'
   environment: *minerva_envr
 
 merge:
@@ -69,23 +69,11 @@ merge:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      madd {outdir}/MCXSecInputs.root {histograms}
+      madd {outdir}/histograms.root {histograms}
   publisher:
     publisher_type: interpolated-pub
     publish:
-      histograms: '{outdir}/MCXSecInputs.root'
-  environment: *minerva_envr
-
-xsec_calculation:
-  process:
-    process_type: interpolated-script-cmd
-    interpreter: bash
-    script: |
-      root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+({signal_def},\"ME1A\",\"{histograms}\",\"{outdir}/XSec.root\",\"{data_list}\",\"{mc_list}\")"
-  publisher:
-    publisher_type: interpolated-pub
-    publish:
-      xsec: '{outdir}/XSec.root'
+      histograms: '{outdir}/histograms.root'
   environment: *minerva_envr
 
 plot:
@@ -95,7 +83,7 @@ plot:
     script: |
       truth=0
       if {do_truth}; then truth=1; fi
-      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{xsec}\",\"{data_list}\",\"{mc_list}\")"
+      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"{data_list}\",\"{mc_list}\")"
       mv Migration*.png {outdir}
       mv Selection*.png {outdir}
       if {do_truth}; then source ../scripts/5_plot.sh -o {outdir}; fi
@@ -111,10 +99,7 @@ test:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      if {do_truth}; then
-        echo "TRUTH"
-        echo "more TRUTH"
-      fi
+      ls
   publisher:
     publisher_type: interpolated-pub
     publish:

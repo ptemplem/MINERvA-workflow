@@ -1,8 +1,35 @@
 stages:
-- name: test
+- name: split_anatuples
   dependencies: [init]
   scheduler:
     scheduler_type: singlestep-stage
     parameters:
+      data: {step: init, output: data}
+      mc: {step: init, output: mc}
+      by_playlist: {step: init, output: by_playlist}
+      outdir: '{workdir}'
+    step: {$ref: 'workflow/steps.yml#/split_anatuples'}
+- name: mc_histograms
+  dependencies: [split_anatuples]
+  scheduler:
+    scheduler_type: multistep-stage
+    parameters:
+      mc_runs: {step: split_anatuples, output: mc_runs}
+      mc: {step: init, output: mc}
+      index: {step: split_anatuples, output: index}
+      outdir: '{workdir}'
       do_truth: {step: init, output: do_truth}
-    step: {$ref: 'workflow/steps.yml#/test'}
+      do_systematics: {step: init, output: do_systematics}
+      signal_def: {step: init, output: signal_def}
+    step: {$ref: 'workflow/steps.yml#/mc_histograms'}
+    scatter:
+      method: zip
+      parameters: [index]
+- name: merge
+  dependencies: [mc_histograms]
+  scheduler:
+    scheduler_type: singlestep-stage
+    parameters:
+      histograms: {stages: 'mc_histograms[*]', output: histograms}
+      outdir: '{workdir}'
+    step: {$ref: 'workflow/steps.yml#/merge'} 

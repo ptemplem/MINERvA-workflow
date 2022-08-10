@@ -1,19 +1,22 @@
-version: 0.0.0
+version: 0.1.0
 inputs:
   parameters:
     ### Anatuple Locations
     data: 'anatuples/Data/*'
     mc: 'anatuples/MC/*'
     ### Workflow Options
-    do_truth: false
-    do_systematics: false
-    ### Signal Definition
-    preset: 0
-    pospi: 1
-    negpi: 0
-  directories:
+    do_truth: 'false'       # Error Analysis Plots (most time intensive part of analysis)
+    do_systematics: 'false'     # Efficiency plots
+    by_playlist: 'false'      # Set false for testing with few files/single playlist
+    ### Signal Definition (still in development)
+    signal_def: '0'
+  directories: #(Files in these directories are uploaded to REANA)
     - workflow
-    - anatuples
+    - anatuples/Data
+    - anatuples/MC
 workflow:
   type: yadage
   file: workflow/workflow.yml
+outputs:
+  files:
+   - plot/*.png
