@@ -2,6 +2,7 @@ SHELL := /bin/bash
 export DOCKER_USER := "ptemplem"
 YADAGE_WORK_DIR = "$(PWD)/yadage-workdir"
 export REANA_WORKON := minerva-workflow
+REANA_SERVER_URL = https://reana.cern.ch
 
 .PHONY: build
 build:
@@ -14,7 +15,7 @@ build:
 .PHONY: run
 run:
 	@echo "REANA Token:" && \
-	export REANA_SERVER_URL=https://reana.cern.ch && \
+	export REANA_SERVER_URL=$(REANA_SERVER_URL) && \
 	if [$$REANA_ACCESS_TOKEN == ""]; then read -s REANA_ACCESS_TOKEN; fi && \
 	echo "Running on REANA..." && \
 	reana-client create -n $$REANA_WORKON -t $$REANA_ACCESS_TOKEN && \
