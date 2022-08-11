@@ -1,12 +1,13 @@
 SHELL := /bin/bash
-export DOCKER_USER := "ptemplem"
+export DOCKER_USER := ptemplem
+export REANA_ACCESS_TOKEN := 
+export REANA_SERVER_URL := https://reana.cern.ch
 YADAGE_WORK_DIR = "$(PWD)/yadage-workdir"
 export REANA_WORKON := minerva-workflow
-REANA_SERVER_URL = https://reana.cern.ch
 
 .PHONY: build
 build:
-	@if [$$DOCKER_USER == ""]; then echo "Docker username:" && read DOCKER_USER; fi && \
+	@if [ "$$DOCKER_USER" == "" ]; then echo "Docker username:" && read DOCKER_USER; fi && \
 	echo "Building Docker image..." && \
 	docker build . -f Dockerfile -t $(DOCKER_USER)/minerva-workflow && \
 	echo "Pushing to DockerHub" && \
@@ -14,14 +15,18 @@ build:
 	
 .PHONY: run
 run:
-	@echo "REANA Token:" && \
-	export REANA_SERVER_URL=$(REANA_SERVER_URL) && \
-	if [$$REANA_ACCESS_TOKEN == ""]; then read -s REANA_ACCESS_TOKEN; fi && \
+	@if [ "$$REANA_ACCESS_TOKEN" == "" ]; then echo "REANA Token:" && read -s REANA_ACCESS_TOKEN; fi && \
 	echo "Running on REANA..." && \
 	reana-client create -n $$REANA_WORKON -t $$REANA_ACCESS_TOKEN && \
 	reana-client upload -t $$REANA_ACCESS_TOKEN && \
 	reana-client start -t $$REANA_ACCESS_TOKEN
 
+.PHONY: results
+results:
+	@if [ "$$REANA_ACCESS_TOKEN" == "" ]; then echo "REANA Token:" && read -s REANA_ACCESS_TOKEN; fi && \
+	echo "Downloading results" && \
+	reana-client download plots/*.png
+	
 .PHONY: local
 local:
 	@echo "Launching Yadage..."
