@@ -9,9 +9,9 @@ export REANA_WORKON := minerva-workflow
 build:
 	@if [ "$$DOCKER_USER" == "" ]; then echo "Docker username:" && read DOCKER_USER; fi && \
 	echo "Building Docker image..." && \
-	docker build . -f Dockerfile -t $(DOCKER_USER)/minerva-workflow && \
+	docker build . -f Dockerfile -t $(DOCKER_USER)/minerva-workflow:latest && \
 	echo "Pushing to DockerHub" && \
-	docker push $(DOCKER_USER)/minerva-workflow
+	docker push $(DOCKER_USER)/minerva-workflow:latest
 	
 .PHONY: run
 run:
@@ -36,8 +36,12 @@ local:
 		-p mc="anatuples/MC/*" \
 		-p do_truth="'false'" \
 		-p do_systematics="'false'" \
-		-p by_playlist="'true'" \
-		-p signal_def="0" \
+		-p by_playlist="'false'" \
+		-p signal_def="4" \
+		-p w_exp="'1.4'" \
+		-p npi="'3'" \
+		-p pim="'1'" \
+		-p pi0="'1'" \
 		-d initdir=$(PWD) \
 		--toplevel $(PWD)
 
@@ -51,6 +55,10 @@ test:
 		-p do_truth="'false'" \
 		-p do_systematics="'false'" \
 		-p by_playlist="'false'" \
-		-p signal_def="0" \
+		-p signal_def="4" \
+		-p w_exp="'1.4'" \
+		-p npi="'3'" \
+		-p pim="'1'" \
+		-p pi0="'1'" \
 		-d initdir=$(PWD) \
 		--toplevel $(PWD)

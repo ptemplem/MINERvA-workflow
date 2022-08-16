@@ -9,27 +9,19 @@ stages:
       by_playlist: {step: init, output: by_playlist}
       outdir: '{workdir}'
     step: {$ref: 'workflow/steps.yml#/split_anatuples'}
-- name: mc_histograms
+- name: test_vars
   dependencies: [split_anatuples]
-  scheduler:
-    scheduler_type: multistep-stage
-    parameters:
-      mc_runs: {step: split_anatuples, output: mc_runs}
-      mc: {step: init, output: mc}
-      index: {step: split_anatuples, output: index}
-      outdir: '{workdir}'
-      do_truth: {step: init, output: do_truth}
-      do_systematics: {step: init, output: do_systematics}
-      signal_def: {step: init, output: signal_def}
-    step: {$ref: 'workflow/steps.yml#/mc_histograms'}
-    scatter:
-      method: zip
-      parameters: [index]
-- name: merge
-  dependencies: [mc_histograms]
   scheduler:
     scheduler_type: singlestep-stage
     parameters:
-      histograms: {stages: 'mc_histograms[*]', output: histograms}
+      mc_list: {step: split_anatuples, output: mc_list}
+      mc: {step: init, output: mc}
+      data_list: {step: split_anatuples, output: data_list}
+      data: {step: init, output: data}
       outdir: '{workdir}'
-    step: {$ref: 'workflow/steps.yml#/merge'} 
+      signal_def: {step: init, output: signal_def}
+      w_exp: {step: init, output: w_exp}
+      npi: {step: init, output: npi}
+      pim: {step: init, output: pim}
+      pi0: {step: init, output: pi0}
+    step: {$ref: 'workflow/steps.yml#/test_vars'}
