@@ -1,7 +1,7 @@
 minerva_envr: &minerva_envr
   environment_type: 'docker-encapsulated'
   image: 'ptemplem/minerva-workflow'
-  imagetag: 'latest'
+  imagetag: 'test'
 
 split_anatuples:
   process:
@@ -31,10 +31,8 @@ mc_histograms:
     interpreter: bash
     script: |
       mc_run={mc_runs}$(ls {mc_runs} | grep $(cat {index}).txt)
-      echo {mc_runs}
-      echo $(cat {index}).txt
       source ../scripts/2_histograms_outfile.sh -i {index} -t mc -o {outdir}
-      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+({signal_def},\"ME1A\",{do_truth},{do_systematics},false,\"$mc_run\",\"$outfile\")"
+      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+({signal_def},\"ME1A\",{do_truth},{do_systematics},false,\"$mc_run\",\"$outfile\",{w_exp},{npi},{pim},{pi0})"
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -52,7 +50,7 @@ data_histograms:
       source ../scripts/2_histograms_outfile.sh -i {index} -t data -o {outdir}
       case $data_run in
         *".txt")
-          root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+({signal_def},\"ME1A\",\"$histogram\",\"$outfile\",\"$data_run\",\"$mc_run\")"
+          root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+({signal_def},\"ME1A\",\"$histogram\",\"$outfile\",\"$data_run\",\"$mc_run\",{w_exp},{npi},{pim},{pi0})"
           ;;
         *)
           cp $histogram $outfile
@@ -83,7 +81,7 @@ plot:
     script: |
       truth=0
       if {do_truth}; then truth=1; fi
-      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"{data_list}\",\"{mc_list}\")"
+      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"{data_list}\",\"{mc_list}\",{w_exp},{npi},{pim},{pi0})"
       mv Migration*.png {outdir}
       mv Selection*.png {outdir}
       if {do_truth}; then source ../scripts/5_plot.sh -o {outdir}; fi
@@ -99,7 +97,7 @@ test:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      ls
+      echo {mc_list}
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -111,7 +109,7 @@ test_vars:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      root -b -q -l loadLibs.C "studies/runCutVariables.C(0,\"ME1A\",\"{data_list}\",\"{mc_list}\")"
+      root -b -q -l loadLibs.C "studies/runCutVariables.C({signal_def},\"ME1A\",\"{data_list}\",\"{mc_list}\",{w_exp},{npi},{pim},{pi0})"
       mv *.png {outdir}
   publisher:
     publisher_type: interpolated-pub
