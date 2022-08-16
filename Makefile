@@ -9,9 +9,9 @@ export REANA_WORKON := minerva-workflow
 build:
 	@if [ "$$DOCKER_USER" == "" ]; then echo "Docker username:" && read DOCKER_USER; fi && \
 	echo "Building Docker image..." && \
-	docker build . -f Dockerfile -t $(DOCKER_USER)/minerva-workflow:test && \
+	docker build . -f Dockerfile -t $(DOCKER_USER)/minerva-workflow:latest && \
 	echo "Pushing to DockerHub" && \
-	docker push $(DOCKER_USER)/minerva-workflow:test
+	docker push $(DOCKER_USER)/minerva-workflow:latest
 	
 .PHONY: run
 run:

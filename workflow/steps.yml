@@ -1,7 +1,7 @@
 minerva_envr: &minerva_envr
   environment_type: 'docker-encapsulated'
   image: 'ptemplem/minerva-workflow'
-  imagetag: 'test'
+  imagetag: 'latest'
 
 split_anatuples:
   process:
