@@ -21,8 +21,6 @@ split_anatuples:
       mc_runs: '{outdir}/mc_runs/'
       data_runs: '{outdir}/data_runs/'
       index: '{outdir}/index/*'
-      mc_list: '{outdir}/workflow_mc_list.txt'
-      data_list: '{outdir}/workflow_data_list.txt'
   environment: *minerva_envr
 
 mc_histograms:
@@ -79,9 +77,11 @@ plot:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
+      data_run={data_runs}$(ls {data_runs} | grep 0.txt)
+      mc_run={mc_runs}$(ls {mc_runs} | grep 0.txt)
       truth=0
       if {do_truth}; then truth=1; fi
-      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"{data_list}\",\"{mc_list}\",{w_exp},{npi},{pim},{pi0})"
+      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"$data_run\",\"$mc_run\",{w_exp},{npi},{pim},{pi0})"
       mv Migration*.png {outdir}
       mv Selection*.png {outdir}
       if {do_truth}; then source ../scripts/5_plot.sh -o {outdir}; fi

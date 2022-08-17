@@ -64,8 +64,8 @@ stages:
     scheduler_type: singlestep-stage
     parameters:
       histograms: {step: merge, output: histograms}
-      data_list: {step: split_anatuples, output: data_list}
-      mc_list: {step: split_anatuples, output: mc_list}
+      data_runs: {step: split_anatuples, output: data_runs}
+      mc_runs: {step: split_anatuples, output: mc_runs}
       data: {step: init, output: data}
       mc: {step: init, output: mc}
       do_truth: {step: init, output: do_truth}
