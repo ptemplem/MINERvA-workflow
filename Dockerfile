@@ -10,9 +10,6 @@ RUN apt-get update && \
     file && \
     rm -rf /var/lib/apt/lists/*
 
-### Clone Analysis
-COPY CC-CH-pip-ana ${TOPDIR}/CC-CH-pip-ana
-
 ### MAT Include Paths
 ENV PLOTUTILSROOT=${TOPDIR}/opt/lib
 ENV GENIEXSECEXTRACTROOT=${TOPDIR}/opt/lib
@@ -26,7 +23,15 @@ ENV ROOT_INCLUDE_PATH=${TOPDIR}/opt/include/PlotUtils:${TOPDIR}/opt/include:${RO
 ENV MPARAMFILESROOT ${TOPDIR}/opt/etc/MParamFiles
 ENV MPARAMFILES=${MPARAMFILESROOT}/data
 
-### Compile Analysis Code
+### Clone Includes
+COPY CC-CH-pip-ana/includes ${TOPDIR}/CC-CH-pip-ana/includes
+COPY CC-CH-pip-ana/loadLibs.C  ${TOPDIR}/CC-CH-pip-ana
+### Compile Includes
+RUN root -b -l loadLibs.C
+
+### Clone Remaining Code
+COPY CC-CH-pip-ana ${TOPDIR}/CC-CH-pip-ana
+### Compile Macros
 RUN root -b -l loadLibs.C loadMacros.C
 
 ### Scripts
