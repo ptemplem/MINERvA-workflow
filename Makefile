@@ -62,3 +62,21 @@ test:
 		-p pi0="'1'" \
 		-d initdir=$(PWD) \
 		--toplevel $(PWD)
+
+.PHONY: closure
+closure:
+	@echo "Launching Yadage..."
+	@sudo rm -rf yadage-workdir
+	@yadage-run $(YADAGE_WORK_DIR) "workflow/closure.yml" \
+		-p data="anatuples/Data/*" \
+		-p mc="anatuples/MC/*" \
+		-p do_truth="'false'" \
+		-p do_systematics="'false'" \
+		-p by_playlist="'false'" \
+		-p signal_def="0" \
+		-p w_exp="'1.4'" \
+		-p npi="'3'" \
+		-p pim="'1'" \
+		-p pi0="'1'" \
+		-d initdir=$(PWD) \
+		--toplevel $(PWD)

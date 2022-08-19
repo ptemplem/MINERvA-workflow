@@ -21,6 +21,8 @@ split_anatuples:
       mc_runs: '{outdir}/mc_runs/'
       data_runs: '{outdir}/data_runs/'
       index: '{outdir}/index/*'
+      mc_list: '{outdir}/workflow_mc_list.txt'
+      data_list: '{outdir}/workflow_data_list.txt'
   environment: *minerva_envr
 
 mc_histograms:
@@ -111,6 +113,19 @@ test_vars:
     script: |
       root -b -q -l loadLibs.C "studies/runCutVariables.C({signal_def},\"ME1A\",\"{data_list}\",\"{mc_list}\",{w_exp},{npi},{pim},{pi0})"
       mv *.png {outdir}
+  publisher:
+    publisher_type: interpolated-pub
+    publish:
+      plots: '{outdir}/*.png'
+  environment: *minerva_envr
+
+closure:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      root -b -q -l loadLibs.C "xsec/GXSEClosure.C+({signal_def},\"{histograms}\",\"{data_list}\",\"{mc_list}\",{w_exp},{npi},{pim},{pi0})"
+      ls
   publisher:
     publisher_type: interpolated-pub
     publish:
