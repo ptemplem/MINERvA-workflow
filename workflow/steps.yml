@@ -83,11 +83,8 @@ plot:
       mc_run={mc_runs}$(ls {mc_runs} | grep 0.txt)
       truth=0
       if {do_truth}; then truth=1; fi
-      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"$data_run\",\"$mc_run\",{w_exp},{npi},{pim},{pi0})"
-      mv Migration*.png {outdir}
-      mv Selection*.png {outdir}
-      if {do_truth}; then source ../scripts/5_plot.sh -o {outdir}; fi
-      if {do_systematics}; then mv Eff*.png {outdir}; fi
+      root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"$data_run\",\"$mc_run\",\"{outdir}\",{w_exp},{npi},{pim},{pi0})"
+      echo "TODO: Troubleshoot Plotting Issues"
   publisher:
     publisher_type: interpolated-pub
     publish:
