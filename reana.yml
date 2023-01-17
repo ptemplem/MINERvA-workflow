@@ -5,16 +5,16 @@ inputs:
     data: 'anatuples/Data/*'
     mc: 'anatuples/MC/*'
     ### Workflow Options
-    do_truth: 'false'       # Error Analysis Plots (most time intensive part of analysis)
-    do_systematics: 'false'     # Efficiency plots
-    by_playlist: 'false'      # Set false for testing with few files/single playlist
+    do_truth: 'true'       # Error Analysis Plots (most time intensive part of analysis)
+    do_systematics: 'true'     # Efficiency plots
+    by_playlist: 'true'      # Set false for testing with few files/single playlist
     ### Signal Definition (still in development)
     signal_def: '0'
     ### Custom Signal Definition (Set signal_def to 4 to use custom settings)
     w_exp: '1.4' # (in GeV)
     npi: '1' # Max Number of Pions (any type)
-    pim: '1' # Include Negative Pions in Signal (0 or 1)
-    pi0: '1' # Include Neutral Pions in Signal
+    pim: '0' # Include Negative Pions in Signal (0 or 1)
+    pi0: '0' # Include Neutral Pions in Signal
   directories: # (Files in these directories are uploaded to REANA)
     - workflow
     - anatuples/Data

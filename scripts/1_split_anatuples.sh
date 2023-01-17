@@ -19,10 +19,12 @@ for type in "data" "mc"; do
       "ASCII text" | "ASCII text, with CRLF line terminators" | "ASCII text, with no line terminators")
         if ${by_playlist}; then
           read cmd < <(echo "${type}_arr2+=($file_name)") #Weird syntax to get dynamic array name to work
-          eval $cmd 
-        fi
+          eval $cmd
+          read cmd < <(echo "${type}_pl+=($(echo $file_name | grep -i _me.._ -o -m 1 | tr -d "_"))") #Track playlist TODO: add for non .txt files
+          eval $cmd; else
         cat $file_name >> ${outdir}/workflow_${type}_list.txt
         echo "" >> ${outdir}/workflow_${type}_list.txt #Adds newline
+        fi
         ;;
 
       "directory")
@@ -53,15 +55,20 @@ for type in "data" "mc"; do
   i=0
   type_arr="${type}_arr2[@]"
   for name in ${!type_arr}; do
+    if ${by_playlist}; then
+      type_plist=${type}_pl[i]
+      plist=${!type_plist}; else
+      plist="ALL"
+    fi
     case $(file -b $name) in
 
       "ASCII text" | "ASCII text, with CRLF line terminators" | "ASCII text, with no line terminators")
-        cat ${name} >> ${outdir}/${type}_runs/${type}_run$(($i % $n)).txt
-        echo "" >> ${outdir}/${type}_runs/${type}_run$(($i % $n)).txt
+        cat ${name} >> ${outdir}/${type}_runs/${type}_${plist}_run$(($i % $n)).txt
+        echo "" >> ${outdir}/${type}_runs/${type}_${plist}_run$(($i % $n)).txt
         ;;
 
       *)
-        echo ${name} >> ${outdir}/${type}_runs/${type}_run$(($i % $n)).txt
+        echo ${name} >> ${outdir}/${type}_runs/${type}_${plist}_run$(($i % $n)).txt
         ;;
     esac
     i=$((i+1))

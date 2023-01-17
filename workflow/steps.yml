@@ -21,8 +21,6 @@ split_anatuples:
       mc_runs: '{outdir}/mc_runs/'
       data_runs: '{outdir}/data_runs/'
       index: '{outdir}/index/*'
-      mc_list: '{outdir}/workflow_mc_list.txt'
-      data_list: '{outdir}/workflow_data_list.txt'
   environment: *minerva_envr
 
 mc_histograms:
@@ -30,9 +28,10 @@ mc_histograms:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      mc_run={mc_runs}$(ls {mc_runs} | grep $(cat {index}).txt)
+      mc_run={mc_runs}$(ls {mc_runs} | grep run$(cat {index}).txt)
+      plist=$(echo $mc_run | grep -i _me.._ -o -m 1 | tr -d "_")
       source ../scripts/2_histograms_outfile.sh -i {index} -t mc -o {outdir}
-      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+({signal_def},\"ME1A\",{do_truth},{do_systematics},false,\"$mc_run\",\"$outfile\",{w_exp},{npi},{pim},{pi0})"
+      root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+({signal_def},\"$plist\",{do_systematics},{do_truth},false,\"$mc_run\",\"$outfile\",{w_exp},{npi},{pim},{pi0})"
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -44,13 +43,14 @@ data_histograms:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      data_run={data_runs}$(ls {data_runs} | grep $(cat {index}).txt)
-      mc_run={mc_runs}$(ls {mc_runs} | grep $(cat {index}).txt)
-      histogram={outdir}/../$(cd {outdir}/.. && find -name $(echo *$(cat {index}).root) )
+      data_run={data_runs}$(ls {data_runs} | grep run$(cat {index}).txt)
+      plist=$(echo $data_run | grep -i _me.._ -o -m 1 | tr -d "_")
+      mc_run={mc_runs}$(ls {mc_runs} | grep run$(cat {index}).txt)
+      histogram={outdir}/../$(cd {outdir}/.. && find -name $(echo *histogram$(cat {index}).root) )
       source ../scripts/2_histograms_outfile.sh -i {index} -t data -o {outdir}
       case $data_run in
         *".txt")
-          root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+({signal_def},\"ME1A\",\"$histogram\",\"$outfile\",\"$data_run\",\"$mc_run\",{w_exp},{npi},{pim},{pi0})"
+          root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+({signal_def},\"$plist\",\"$histogram\",\"$outfile\",\"$data_run\",\"$mc_run\",{w_exp},{npi},{pim},{pi0})"
           ;;
         *)
           cp $histogram $outfile
@@ -79,12 +79,11 @@ plot:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      data_run={data_runs}$(ls {data_runs} | grep 0.txt)
-      mc_run={mc_runs}$(ls {mc_runs} | grep 0.txt)
+      data_run={data_runs}$(ls {data_runs} | grep run0.txt)
+      mc_run={mc_runs}$(ls {mc_runs} | grep run0.txt)
       truth=0
       if {do_truth}; then truth=1; fi
       root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"$data_run\",\"$mc_run\",\"{outdir}\",{w_exp},{npi},{pim},{pi0})"
-      echo "TODO: Troubleshoot Plotting Issues"
   publisher:
     publisher_type: interpolated-pub
     publish:
@@ -96,11 +95,20 @@ test:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      echo {mc_list}
+      root
+      TFile f("{histograms}")
+      TCanvas c1
+      TH1D *n = (TH1D*)f.Get("effnum_tpi")
+      n->Draw()
+      TCanvas c2
+      TH1D *d = (TH1D*)f.Get("effden_tpi")
+      d->Draw()
+      c1.Print("{outdir}/n.png")
+      c2.Print("{outdir}/d.png")
   publisher:
     publisher_type: interpolated-pub
     publish:
-      blank: ''
+      plots: "*.png"
   environment: *minerva_envr
 
 test_vars:

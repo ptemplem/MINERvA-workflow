@@ -17,4 +17,4 @@ stages:
       pim: {step: init, output: pim}
       pi0: {step: init, output: pi0}
       outdir: '{workdir}'
-    step: {$ref: 'workflow/steps.yml#/test'}
+    step: {$ref: 'workflow/steps.yml#/plot'}
