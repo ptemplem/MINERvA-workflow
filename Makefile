@@ -31,7 +31,7 @@ stop:
 results:
 	@if [ "$$REANA_ACCESS_TOKEN" == "" ]; then echo "REANA Token:" && read -s REANA_ACCESS_TOKEN; fi && \
 	echo "Downloading results" && \
-	reana-client download plots/*.png
+	reana-client download plot/*.png
 	
 .PHONY: local
 local:

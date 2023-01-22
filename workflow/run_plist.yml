@@ -1,19 +1,19 @@
 stages:
-- name: split_1
+- name: split_2
   dependencies: [init]
   scheduler:
     scheduler_type: singlestep-stage
     parameters:
-      data: {step: init, output: data}
-      mc: {step: init, output: mc}
+      plist: {step: init, output: plist}
       outdir: '{workdir}'
-    step: {$ref: 'workflow/steps.yml#/split_1'}
-- name: run_plist
-  dependencies: [split_1]
+    step: {$ref: 'steps.yml#/split_2'}
+- name: mc_histograms
+  dependencies: [split_2]
   scheduler:
     scheduler_type: multistep-stage
     parameters:
-      plist: {step: split_1, output: plist}
+      run: {step: 'split_2', output: run}
+      outdir: '{workdir}'
       do_truth: {step: init, output: do_truth}
       do_systematics: {step: init, output: do_systematics}
       signal_def: {step: init, output: signal_def}
@@ -21,31 +21,29 @@ stages:
       npi: {step: init, output: npi}
       pim: {step: init, output: pim}
       pi0: {step: init, output: pi0}
-    workflow: {$ref: 'workflow/run_plist.yml'}
+    step: {$ref: 'steps.yml#/mc_histograms'}
     scatter:
         method: zip
-        parameters: [plist]
-- name: merge_2
-  dependencies: [run_plist]
+        parameters: [run]
+- name: merge_1
+  dependencies: [mc_histograms]
   scheduler:
     scheduler_type: singlestep-stage
     parameters:
-      histograms: {stages: 'run_plist[*].data_histograms', output: histograms}
+      histograms: {stages: 'mc_histograms[*]', output: output}
       outdir: '{workdir}'
-    step: {$ref: 'workflow/steps.yml#/merge'} 
-- name: plot
-  dependencies: [merge_2]
+    step: {$ref: 'steps.yml#/merge'}
+- name: data_histograms
+  dependencies: [merge_1]
   scheduler:
     scheduler_type: singlestep-stage
     parameters:
-      histograms: {step: merge_2, output: histograms}
-      run: {step: 'run_plist[0].split_2', output: run}
-      do_truth: {step: init, output: do_truth}
-      do_systematics: {step: init, output: do_systematics}
+      plist: {step: init, output: plist}
+      histograms: {stages: 'merge_1', output: histograms}
       signal_def: {step: init, output: signal_def}
       w_exp: {step: init, output: w_exp}
       npi: {step: init, output: npi}
       pim: {step: init, output: pim}
       pi0: {step: init, output: pi0}
       outdir: '{workdir}'
-    step: {$ref: 'workflow/steps.yml#/plot'}
+    step: {$ref: 'steps.yml#/data_histograms'} 

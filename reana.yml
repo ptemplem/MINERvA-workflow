@@ -7,7 +7,6 @@ inputs:
     ### Workflow Options
     do_truth: 'true'       # Error Analysis Plots (most time intensive part of analysis)
     do_systematics: 'true'     # Efficiency plots
-    by_playlist: 'true'      # Set false for testing with few files/single playlist
     ### Signal Definition (still in development)
     signal_def: '0'
     ### Custom Signal Definition (Set signal_def to 4 to use custom settings)

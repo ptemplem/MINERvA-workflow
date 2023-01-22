@@ -3,24 +3,35 @@ minerva_envr: &minerva_envr
   image: 'ptemplem/minerva-workflow'
   imagetag: 'latest'
 
-split_anatuples:
+split_1:
   process:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      mkdir {outdir}/mc_runs
-      mkdir {outdir}/data_runs
-      mkdir {outdir}/index
       export mc_arr=({mc})
-      export data_arr=({data})
-      source ../scripts/1_split_anatuples.sh -d {outdir} -p {by_playlist}
+      export data='{data}'
+      source ../scripts/1_split.sh -d {outdir}
   publisher:
     publisher_type: 'interpolated-pub'
     glob: true
     publish:
-      mc_runs: '{outdir}/mc_runs/'
-      data_runs: '{outdir}/data_runs/'
-      index: '{outdir}/index/*'
+      plist: '{outdir}/plist/*'
+  environment: *minerva_envr
+
+split_2:
+  process:
+    process_type: interpolated-script-cmd
+    interpreter: bash
+    script: |
+      export mc_file={plist}/mc.txt
+      export data_file={plist}/data.txt
+      export plist=$(cat {plist}/plist.txt)
+      source ../scripts/2_split.sh -d {outdir}
+  publisher:
+    publisher_type: 'interpolated-pub'
+    glob: true
+    publish:
+      run: '{outdir}/run_*'
   environment: *minerva_envr
 
 mc_histograms:
@@ -28,14 +39,17 @@ mc_histograms:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      mc_run={mc_runs}$(ls {mc_runs} | grep run$(cat {index}).txt)
+      mc_run=$(echo {run})/$(ls {run} | grep -i mc)
       plist=$(echo $mc_run | grep -i _me.._ -o -m 1 | tr -d "_")
-      source ../scripts/2_histograms_outfile.sh -i {index} -t mc -o {outdir}
+      cp -r {run} {outdir}
+      outfile=$(echo {outdir}/run_*)/histogram.root
+      export XRD_STREAMTIMEOUT=300
       root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+({signal_def},\"$plist\",{do_systematics},{do_truth},false,\"$mc_run\",\"$outfile\",{w_exp},{npi},{pim},{pi0})"
   publisher:
     publisher_type: interpolated-pub
+    glob: true
     publish:
-      histograms: '{outdir}/mc_histogram*.root'
+      output: '{outdir}/run_*'
   environment: *minerva_envr
 
 data_histograms:
@@ -43,13 +57,14 @@ data_histograms:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      data_run={data_runs}$(ls {data_runs} | grep run$(cat {index}).txt)
-      plist=$(echo $data_run | grep -i _me.._ -o -m 1 | tr -d "_")
-      mc_run={mc_runs}$(ls {mc_runs} | grep run$(cat {index}).txt)
-      histogram={outdir}/../$(cd {outdir}/.. && find -name $(echo *histogram$(cat {index}).root) )
-      source ../scripts/2_histograms_outfile.sh -i {index} -t data -o {outdir}
+      mc_run={plist}/mc.txt
+      data_run={plist}/data.txt
+      plist=$(cat {plist}/plist.txt)
+      histogram={histograms}
+      outfile={outdir}/histogram.root
       case $data_run in
         *".txt")
+          export XRD_STREAMTIMEOUT=300
           root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+({signal_def},\"$plist\",\"$histogram\",\"$outfile\",\"$data_run\",\"$mc_run\",{w_exp},{npi},{pim},{pi0})"
           ;;
         *)
@@ -59,7 +74,7 @@ data_histograms:
   publisher:
     publisher_type: interpolated-pub
     publish:
-      histograms: '{outdir}/data_histogram*.root'
+      output: '{outdir}/histogram.root'
   environment: *minerva_envr
 
 merge:
@@ -79,8 +94,9 @@ plot:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      data_run={data_runs}$(ls {data_runs} | grep run0.txt)
-      mc_run={mc_runs}$(ls {mc_runs} | grep run0.txt)
+      run0=$(echo {run} | tr " " "\n" | grep -i run_0)
+      mc_run=$(echo $run0)/$(ls $run0 | grep -i mc)
+      data_run=$(echo $run0)/$(ls $run0 | grep -i data)
       truth=0
       if {do_truth}; then truth=1; fi
       root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"$data_run\",\"$mc_run\",\"{outdir}\",{w_exp},{npi},{pim},{pi0})"
@@ -95,20 +111,13 @@ test:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      root
-      TFile f("{histograms}")
-      TCanvas c1
-      TH1D *n = (TH1D*)f.Get("effnum_tpi")
-      n->Draw()
-      TCanvas c2
-      TH1D *d = (TH1D*)f.Get("effden_tpi")
-      d->Draw()
-      c1.Print("{outdir}/n.png")
-      c2.Print("{outdir}/d.png")
+      echo "test"
+      echo {runs}
+      ls {runs}
   publisher:
     publisher_type: interpolated-pub
     publish:
-      plots: "*.png"
+     output: '{outdir}'
   environment: *minerva_envr
 
 test_vars:
