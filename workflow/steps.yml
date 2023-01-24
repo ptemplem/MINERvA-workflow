@@ -31,6 +31,8 @@ mc_histograms:
       mc_run={mc_runs}$(ls {mc_runs} | grep run$(cat {index}).txt)
       plist=$(echo $mc_run | grep -i _me.._ -o -m 1 | tr -d "_")
       source ../scripts/2_histograms_outfile.sh -i {index} -t mc -o {outdir}
+      export XRD_STREAMTIMEOUT=1800
+      export XRD_REQUESTTIMEOUT=1800
       root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+({signal_def},\"$plist\",{do_systematics},{do_truth},false,\"$mc_run\",\"$outfile\",{w_exp},{npi},{pim},{pi0})"
   publisher:
     publisher_type: interpolated-pub
@@ -50,6 +52,8 @@ data_histograms:
       source ../scripts/2_histograms_outfile.sh -i {index} -t data -o {outdir}
       case $data_run in
         *".txt")
+          export XRD_STREAMTIMEOUT=1800
+          export XRD_REQUESTTIMEOUT=1800
           root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+({signal_def},\"$plist\",\"$histogram\",\"$outfile\",\"$data_run\",\"$mc_run\",{w_exp},{npi},{pim},{pi0})"
           ;;
         *)
@@ -67,6 +71,8 @@ merge:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
+      export XRD_STREAMTIMEOUT=1800
+      export XRD_REQUESTTIMEOUT=1800
       madd {outdir}/histograms.root {histograms}
   publisher:
     publisher_type: interpolated-pub
@@ -83,6 +89,8 @@ plot:
       mc_run={mc_runs}$(ls {mc_runs} | grep run0.txt)
       truth=0
       if {do_truth}; then truth=1; fi
+      export XRD_STREAMTIMEOUT=1800
+      export XRD_REQUESTTIMEOUT=1800
       root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"$data_run\",\"$mc_run\",\"{outdir}\",{w_exp},{npi},{pim},{pi0})"
   publisher:
     publisher_type: interpolated-pub
