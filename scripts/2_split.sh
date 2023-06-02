@@ -9,23 +9,15 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
-# First, pass all .root file names to data_arr and mc_arr
-for type in "data" "mc"; do 
-  type_file="${type}_file"
-  file_name=${!type_file} #Weird syntax to get dynamic variable to work
-  cat $file_name >> ${outdir}/workflow_${type}_list.txt
-  (cat ${outdir}/workflow_${type}_list.txt | tr "," " " | tr $'\n' " " | tr $'\r' " ") > ${outdir}/workflow_${type}_file.txt
-  IFS=" " read -a ${type}_arr <<< $(cat ${outdir}/workflow_${type}_file.txt) #Split individual .root file names into array
-done
+# First, pass all .root file names to and mc_arr.
+(cat $mc_file | tr "," " " | tr $'\n' " " | tr $'\r' " ") > ${outdir}/temp.txt
+IFS=" " read -a mc_arr <<< $(cat ${outdir}/temp.txt) #Split individual .root file names into array
+rm ${outdir}/temp.txt
 # Second, pass array elements to a group of .txt files. Multiple some .txt files have multiple elements from mc_arr to equalize # of mc and data files
-n=$((${#mc_arr[@]}<${#data_arr[@]} ? ${#mc_arr[@]}:${#data_arr[@]})) #Min length out of arrays
-for type in "data" "mc"; do 
-  i=0
-  type_arr="${type}_arr[@]"
-  for name in ${!type_arr}; do
-    mkdir -p ${outdir}/run_$(($i % $n))
-    echo ${name} >> ${outdir}/run_$(($i % $n))/${type}_${plist}_run.txt
-    i=$((i+1))
-  done
+n=$size
+i=0
+for name in ${mc_arr[@]}; do
+  mkdir -p ${outdir}/run_$(($i / $n))
+  echo ${name} >> ${outdir}/run_$(($i / $n))/${type}_${plist}_run.txt
+  i=$((i+1))
 done
-rm ${outdir}/workflow*.txt

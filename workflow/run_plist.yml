@@ -5,6 +5,7 @@ stages:
     scheduler_type: singlestep-stage
     parameters:
       plist: {step: init, output: plist}
+      mc_size: {step: init, output: mc_size}
       outdir: '{workdir}'
     step: {$ref: 'steps.yml#/split_2'}
 - name: mc_histograms
@@ -39,7 +40,7 @@ stages:
     scheduler_type: singlestep-stage
     parameters:
       plist: {step: init, output: plist}
-      histograms: {stages: 'merge_1', output: histograms}
+      histograms: {step: 'merge_1', output: histograms}
       signal_def: {step: init, output: signal_def}
       w_exp: {step: init, output: w_exp}
       npi: {step: init, output: npi}

@@ -14,6 +14,7 @@ stages:
     scheduler_type: multistep-stage
     parameters:
       plist: {step: split_1, output: plist}
+      mc_size: {step: init, output: mc_size}
       do_truth: {step: init, output: do_truth}
       do_systematics: {step: init, output: do_systematics}
       signal_def: {step: init, output: signal_def}
@@ -30,7 +31,7 @@ stages:
   scheduler:
     scheduler_type: singlestep-stage
     parameters:
-      histograms: {stages: 'run_plist[*].data_histograms', output: histograms}
+      histograms: {stages: 'run_plist[*].data_histograms', output: output}
       outdir: '{workdir}'
     step: {$ref: 'workflow/steps.yml#/merge'} 
 - name: plot
@@ -38,8 +39,9 @@ stages:
   scheduler:
     scheduler_type: singlestep-stage
     parameters:
+      data: {step: init, output: data}
+      mc: {step: init, output: mc}
       histograms: {step: merge_2, output: histograms}
-      run: {step: 'run_plist[0].split_2', output: run}
       do_truth: {step: init, output: do_truth}
       do_systematics: {step: init, output: do_systematics}
       signal_def: {step: init, output: signal_def}

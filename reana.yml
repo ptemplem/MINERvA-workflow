@@ -2,11 +2,12 @@ version: 0.1.0
 inputs:
   parameters:
     ### Anatuple Locations
-    data: 'anatuples/Data/*'
-    mc: 'anatuples/MC/*'
+    data: 'anatuples/antineutrino/Data/*'
+    mc: 'anatuples/antineutrino/MC/*'
     ### Workflow Options
     do_truth: 'true'       # Error Analysis Plots (most time intensive part of analysis)
     do_systematics: 'true'     # Efficiency plots
+    mc_size: '10'           #Number of mc files in a job
     ### Signal Definition (still in development)
     signal_def: '0'
     ### Custom Signal Definition (Set signal_def to 4 to use custom settings)
@@ -16,8 +17,7 @@ inputs:
     pi0: '0' # Include Neutral Pions in Signal
   directories: # (Files in these directories are uploaded to REANA)
     - workflow
-    - anatuples/Data
-    - anatuples/MC
+    - anatuples/antineutrino
 workflow:
   type: yadage
   file: workflow/workflow.yml

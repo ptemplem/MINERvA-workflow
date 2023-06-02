@@ -24,7 +24,7 @@ split_2:
     interpreter: bash
     script: |
       export mc_file={plist}/mc.txt
-      export data_file={plist}/data.txt
+      export size={mc_size}
       export plist=$(cat {plist}/plist.txt)
       source ../scripts/2_split.sh -d {outdir}
   publisher:
@@ -39,17 +39,14 @@ mc_histograms:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      mc_run=$(echo {run})/$(ls {run} | grep -i mc)
+      mc_run=$(echo {run})/$(ls {run})
       plist=$(echo $mc_run | grep -i _me.._ -o -m 1 | tr -d "_")
-      cp -r {run} {outdir}
-      outfile=$(echo {outdir}/run_*)/histogram.root
-      export XRD_STREAMTIMEOUT=300
+      outfile={outdir}/histogram.root
       root -b -l loadLibs.C "xsec/makeCrossSectionMCInputs.C+({signal_def},\"$plist\",{do_systematics},{do_truth},false,\"$mc_run\",\"$outfile\",{w_exp},{npi},{pim},{pi0})"
   publisher:
     publisher_type: interpolated-pub
-    glob: true
     publish:
-      output: '{outdir}/run_*'
+      output: '{outdir}/histogram.root'
   environment: *minerva_envr
 
 data_histograms:
@@ -64,7 +61,6 @@ data_histograms:
       outfile={outdir}/histogram.root
       case $data_run in
         *".txt")
-          export XRD_STREAMTIMEOUT=300
           root -b -l loadLibs.C loadMacros.C "xsec/crossSectionDataFromFile.C+({signal_def},\"$plist\",\"$histogram\",\"$outfile\",\"$data_run\",\"$mc_run\",{w_exp},{npi},{pim},{pi0})"
           ;;
         *)
@@ -94,9 +90,10 @@ plot:
     process_type: interpolated-script-cmd
     interpreter: bash
     script: |
-      run0=$(echo {run} | tr " " "\n" | grep -i run_0)
-      mc_run=$(echo $run0)/$(ls $run0 | grep -i mc)
-      data_run=$(echo $run0)/$(ls $run0 | grep -i data)
+      mc_arr=({mc})
+      data_arr=({data})
+      mc_run=$mc_arr
+      data_run=$data_arr
       truth=0
       if {do_truth}; then truth=1; fi
       root -b -l -q loadLibs.C loadMacros.C "xsec/plotCrossSectionFromFile.C+({signal_def},$truth,\"{histograms}\",\"$data_run\",\"$mc_run\",\"{outdir}\",{w_exp},{npi},{pim},{pi0})"

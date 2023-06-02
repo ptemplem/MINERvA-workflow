@@ -34,5 +34,8 @@ COPY CC-CH-pip-ana ${TOPDIR}/CC-CH-pip-ana
 ### Compile Macros
 RUN root -b -l loadLibs.C loadMacros.C
 
+### Stop xrootd Timeout
+ENV XRD_STREAMTIMEOUT=18000
+ENV XRD_REQUESTTIMEOUT=18000
 ### Scripts
 COPY scripts ${SCRIPTS}
