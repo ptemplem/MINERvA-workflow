@@ -2,8 +2,8 @@ version: 0.1.0
 inputs:
   parameters:
     ### Anatuple Locations
-    data: 'anatuples/antineutrino/Data/*'
-    mc: 'anatuples/antineutrino/MC/*'
+    data: 'anatuples/neutrino/Data/*'
+    mc: 'anatuples/neutrino/MC/*'
     ### Workflow Options
     do_truth: 'true'       # Error Analysis Plots (most time intensive part of analysis)
     do_systematics: 'true'     # Efficiency plots
@@ -17,7 +17,7 @@ inputs:
     pi0: '0' # Include Neutral Pions in Signal
   directories: # (Files in these directories are uploaded to REANA)
     - workflow
-    - anatuples/antineutrino
+    - anatuples
 workflow:
   type: yadage
   file: workflow/workflow.yml
