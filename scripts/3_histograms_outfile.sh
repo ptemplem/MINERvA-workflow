@@ -3,7 +3,6 @@
 # Argument parsing
 while [ "$#" -gt 0 ]; do
     case $1 in
-        -i)  index="$2";    shift  ;;
         -t) type="$2";      shift   ;;
         -o) outdir="$2";   shift   ;;
         *) echo "Unknown parameter passed: $1";;
@@ -12,4 +11,4 @@ while [ "$#" -gt 0 ]; do
 done
 
 # Format outfile name
-export outfile=${outdir}"/"${type}"_histogram"$(cat $index)".root"
+export outfile=${outdir}"/"${type}"_histogram.root"

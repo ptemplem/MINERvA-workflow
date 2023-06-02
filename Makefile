@@ -3,7 +3,7 @@ export DOCKER_USER := ptemplem
 export REANA_ACCESS_TOKEN := 
 export REANA_SERVER_URL := https://reana.cern.ch
 YADAGE_WORK_DIR = "$(PWD)/yadage-workdir"
-export REANA_WORKON := minerva-workflow
+export REANA_WORKON := minerva-workflow-neutrino
 
 .PHONY: build
 build:
@@ -31,7 +31,7 @@ stop:
 results:
 	@if [ "$$REANA_ACCESS_TOKEN" == "" ]; then echo "REANA Token:" && read -s REANA_ACCESS_TOKEN; fi && \
 	echo "Downloading results" && \
-	reana-client download plots/*.png
+	reana-client download plot/*.png
 	
 .PHONY: local
 local:
@@ -40,9 +40,9 @@ local:
 	@yadage-run $(YADAGE_WORK_DIR) "workflow/workflow.yml" \
 		-p data="anatuples/Data_test/*" \
 		-p mc="anatuples/MC_test/*" \
-		-p do_truth="'true'" \
-		-p do_systematics="'true'" \
-		-p by_playlist="'true'" \
+		-p do_truth="'false'" \
+		-p do_systematics="'false'" \
+		-p mc_size="'2'" \
 		-p signal_def="0" \
 		-p w_exp="'1.4'" \
 		-p npi="'1'" \
