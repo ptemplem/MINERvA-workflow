@@ -1,5 +1,5 @@
 # REANA Workflow for the CC Pion MINERvA Analysis
-A yadage workflow based on Ben Messerly's CC Pion Analysis (https://github.com/MinervaExpt/CC-CH-pip-ana). Software dependencies (including those from MAT and MAT-MINERvA) are accessed using a Docker container. The workflow can be run localy for testing, but is intended to be run with REANA on a computing cluster.
+A yadage workflow based on Ben Messerly's CC Pion Analysis (https://github.com/MinervaExpt/CC-CH-pip-ana). Software dependencies (including those from MAT and MAT-MINERvA) are accessed using a Docker container. The workflow can be run locally for testing, but is intended to be run with REANA on a computing cluster.
 
 This workflow is my project as an IRIS-HEP Summer Fellow (see https://iris-hep.org/fellows/ptemplem.html).
 ## Installation
